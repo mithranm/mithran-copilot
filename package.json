@@ -1,0 +1,22 @@
+{
+  "name": "mithran-copilot",
+  "version": "1.0.0",
+  "description": "A Chrome extension for chatting with an LLM",
+  "main": "background.js",
+  "scripts": {
+    "build": "webpack --mode production",
+    "dev": "webpack --mode development --watch"
+  },
+  "dependencies": {
+    "dompurify": "^3.1.6",
+    "marked": "^14.1.2"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.22.5",
+    "@babel/preset-env": "^7.22.5",
+    "babel-loader": "^9.1.2",
+    "copy-webpack-plugin": "^11.0.0",
+    "webpack": "^5.88.0",
+    "webpack-cli": "^5.1.4"
+  }
+}

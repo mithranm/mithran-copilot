@@ -1,0 +1,31 @@
+{
+  "manifest_version": 3,
+  "name": "Mithran Copilot",
+  "version": "1.0",
+  "description": "A Chrome extension for chatting with an LLM",
+  "permissions": [
+    "storage",
+    "sidePanel",
+    "tabs",
+    "contextMenus"
+  ],
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_title": "Open Mithran Copilot"
+  },
+  "host_permissions": [
+    "https://api.deepseek.com/*"
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["settings.html"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}
