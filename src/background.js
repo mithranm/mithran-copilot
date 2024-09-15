@@ -1,6 +1,13 @@
 let isDevMode = false;
 
+console.log('Background script loaded'); // This should always appear
+
+function devLog(...args) {
+  console.log('[DEV]', ...args); // Always log, we'll check isDevMode inside
+}
+
 chrome.runtime.onInstalled.addListener(() => {
+  console.log('Extension installed or updated');
   chrome.contextMenus.create({
     id: "addToChatbox",
     title: "Add to Mithran Copilot",
@@ -9,6 +16,7 @@ chrome.runtime.onInstalled.addListener(() => {
 });
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {
+  console.log('Context menu clicked', info.menuItemId);
   if (info.menuItemId === "addToChatbox" && info.selectionText) {
     chrome.runtime.sendMessage({
       action: "addToChatbox",
@@ -18,9 +26,10 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
 });
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  console.log('Message received:', request.action);
   if (request.action === "sendToLLM") {
     handleLLMRequest(request.message, sendResponse);
-    return true;  // Indicates that the response is sent asynchronously
+    return true;
   } else if (request.action === "newChat") {
     clearChatHistory();
     sendResponse({status: "Chat history cleared"});
@@ -34,12 +43,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true;
   }
 });
-
-function devLog(...args) {
-  if (isDevMode) {
-    console.log('[DEV]', ...args);
-  }
-}
 
 async function handleLLMRequest(message, sendResponse) {
   devLog('Handling LLM request:', message);
@@ -88,33 +91,36 @@ async function handleLLMRequest(message, sendResponse) {
       throw new Error('Unexpected API response structure');
     }
   } catch (error) {
-    devLog('Error in handleLLMRequest:', error);
-    console.error('Error:', error);
+    console.error('Error in handleLLMRequest:', error);
     sendResponse({reply: `Error: ${error.message}`});
   }
 }
 
 async function getChatHistory() {
   const result = await chrome.storage.local.get(['chatHistory']);
+  devLog('Retrieved chat history:', result.chatHistory);
   return result.chatHistory || [];
 }
 
 async function saveChatHistory(chatHistory) {
   await chrome.storage.local.set({ chatHistory });
+  devLog('Saved chat history');
 }
 
 async function clearChatHistory() {
   await chrome.storage.local.remove(['chatHistory']);
+  devLog('Cleared chat history');
 }
 
 async function toggleDevMode(enabled) {
   isDevMode = enabled;
   await chrome.storage.local.set({ devMode: isDevMode });
-  devLog(`Dev mode ${isDevMode ? 'enabled' : 'disabled'}`);
+  console.log(`Dev mode ${isDevMode ? 'enabled' : 'disabled'}`); // Always log this
+  devLog(`Dev mode toggled to ${isDevMode}`);
 }
 
 chrome.action.onClicked.addListener((tab) => {
-  devLog('Opening side panel');
+  console.log('Action clicked, opening side panel');
   chrome.sidePanel.open({tabId: tab.id});
 });
 
@@ -135,7 +141,6 @@ async function fetchWithRetry(url, options, maxRetries = 3) {
     try {
       return await fetchWithTimeout(url, options);
     } catch (error) {
-      devLog(`Attempt ${i + 1} failed:`, error);
       console.error(`Attempt ${i + 1} failed:`, error);
       lastError = error;
       await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, i))); // Exponential backoff
@@ -147,5 +152,15 @@ async function fetchWithRetry(url, options, maxRetries = 3) {
 // Load dev mode setting when service worker starts
 chrome.storage.local.get(['devMode'], function(result) {
   isDevMode = result.devMode || false;
-  devLog('Dev mode loaded:', isDevMode);
+  console.log('Dev mode loaded:', isDevMode); // Always log this
+});
+
+// Log any unhandled errors
+self.addEventListener('error', function(event) {
+  console.error('Unhandled error:', event.error);
+});
+
+// Log any unhandled promise rejections
+self.addEventListener('unhandledrejection', function(event) {
+  console.error('Unhandled promise rejection:', event.reason);
 });

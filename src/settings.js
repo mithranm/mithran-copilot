@@ -1,6 +1,7 @@
 // settings.js
 
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('Settings page loaded');
     const saveApiKeyButton = document.getElementById('saveApiKey');
     const apiKeyInput = document.getElementById('apiKeyInput');
     const apiKeyStatus = document.getElementById('apiKeyStatus');
@@ -15,6 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 async function loadApiKey() {
+    console.log('Loading API key');
     try {
         const result = await chrome.storage.sync.get(['apiKey']);
         if (result.apiKey) {
@@ -30,6 +32,7 @@ async function loadApiKey() {
 }
 
 function saveApiKey() {
+    console.log('Saving API key');
     const apiKey = document.getElementById('apiKeyInput').value.trim();
     if (apiKey) {
         try {
@@ -53,15 +56,22 @@ function updateApiKeyStatus(message, color) {
 }
 
 function loadDevMode() {
-    chrome.storage.sync.get(['devMode'], function(result) {
-        document.getElementById('devModeToggle').checked = result.devMode || false;
+    console.log('Loading dev mode setting');
+    chrome.storage.local.get(['devMode'], function(result) {
+        const isDevMode = result.devMode || false;
+        console.log('Dev mode loaded:', isDevMode);
+        document.getElementById('devModeToggle').checked = isDevMode;
     });
 }
 
 function toggleDevMode(event) {
     const isDevMode = event.target.checked;
-    chrome.storage.sync.set({ devMode: isDevMode }, function() {
-        console.log('Dev mode ' + (isDevMode ? 'enabled' : 'disabled'));
+    console.log('Toggling dev mode:', isDevMode);
+    chrome.storage.local.set({ devMode: isDevMode }, function() {
+        console.log('Dev mode saved:', isDevMode);
+    });
+    chrome.runtime.sendMessage({ action: "toggleDevMode", enabled: isDevMode }, function(response) {
+        console.log('Toggle dev mode response:', response);
     });
 }
 
