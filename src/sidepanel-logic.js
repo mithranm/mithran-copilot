@@ -4,6 +4,8 @@ import DOMPurify from 'dompurify';
 
 let chatbox, userinput, apiKeyInput, apiKeyStatus, newChatBtn;
 let isDevMode = false;
+let lastUserMessageElement = null;
+let lastErrorElement = null;
 
 export function initializeElements() {
     chatbox = document.getElementById('chatbox');
@@ -99,21 +101,60 @@ export function sendMessage() {
     devLog('Sending message');
     const message = userinput.value;
     if (message) {
-        appendMessage('You', message);
+        // Remove last error message and its corresponding user message if they exist
+        if (lastErrorElement) {
+            lastErrorElement.remove();
+            if (lastUserMessageElement) {
+                lastUserMessageElement.remove();
+            }
+            lastErrorElement = null;
+            lastUserMessageElement = null;
+        }
+
+        lastUserMessageElement = appendMessage('You', message);
         userinput.value = '';
         autoResize.call(userinput);
 
+        // Show a loading indicator
+        const loadingIndicator = document.createElement('div');
+        loadingIndicator.className = 'message assistant loading';
+        loadingIndicator.textContent = 'Thinking...';
+        chatbox.appendChild(loadingIndicator);
+
         chrome.runtime.sendMessage({ action: "sendToLLM", message: message }, function (response) {
+            // Remove the loading indicator
+            chatbox.removeChild(loadingIndicator);
+
             if (chrome.runtime.lastError) {
                 devLog('Error sending message:', chrome.runtime.lastError);
                 console.error('Error:', chrome.runtime.lastError);
-                appendMessage('Error', 'Unable to send message');
+                handleError('Unable to send message. Please try again later.');
                 return;
             }
-            devLog('Received response:', response.reply);
-            appendMessage('LLM', response.reply);
+
+            if (response.status === 'error') {
+                handleError(response.reply);
+            } else {
+                devLog('Received response:', response.reply);
+                appendMessage('LLM', response.reply);
+                lastUserMessageElement = null; // Reset lastUserMessageElement on successful response
+            }
         });
     }
+}
+
+function handleError(errorMessage) {
+    lastErrorElement = document.createElement('div');
+    lastErrorElement.className = 'message error';
+    lastErrorElement.innerHTML = `
+        <span class="sender">Error:</span>
+        <div class="content">
+            <p>${errorMessage}</p>
+            <p>Please try again or rephrase your prompt.</p>
+        </div>
+    `;
+    chatbox.appendChild(lastErrorElement);
+    chatbox.scrollTop = chatbox.scrollHeight;
 }
 
 export function appendMessage(sender, message) {
@@ -121,7 +162,7 @@ export function appendMessage(sender, message) {
     devLog('Original message:', message);
 
     const messageDiv = document.createElement('div');
-    messageDiv.className = `message ${sender.toLowerCase()}`;
+    messageDiv.className = `message ${sender.toLowerCase()} fade-in`;
 
     const senderSpan = document.createElement('span');
     senderSpan.className = 'sender';
@@ -143,6 +184,8 @@ export function appendMessage(sender, message) {
 
     chatbox.appendChild(messageDiv);
     chatbox.scrollTop = chatbox.scrollHeight;
+
+    return messageDiv;
 }
 
 export function setupNewChat() {  // Changed from setupNewChatButton to setupNewChat

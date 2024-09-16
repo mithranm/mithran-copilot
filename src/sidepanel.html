@@ -4,107 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mithran Copilot</title>
-    <script type="module" src="sidepanel.js"></script>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f0f0f0;
-            color: #333;
-        }
-        #main-container {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            max-width: 800px;
-            margin: 0 auto;
-            background-color: #fff;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-        #header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 20px;
-            background-color: #e0e0e0;
-        }
-        #new-chat-btn, #settings-btn {
-            background-color: #d0d0d0;
-            border: none;
-            padding: 5px 10px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        #new-chat-btn:hover, #settings-btn:hover {
-            background-color: #c0c0c0;
-        }
-        #chat-container {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            padding: 20px;
-            overflow-y: auto;
-        }
-        #chatbox {
-            flex-grow: 1;
-            overflow-y: auto;
-            margin-bottom: 20px;
-        }
-        .message {
-            margin-bottom: 15px;
-            padding: 10px;
-            border-radius: 5px;
-        }
-        .you {
-            background-color: #e6e6e6;
-            align-self: flex-end;
-        }
-        .llm {
-            background-color: #f6f6f6;
-            align-self: flex-start;
-        }
-        .sender {
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-        #input-container {
-            display: flex;
-            margin-top: 10px;
-        }
-        #userinput {
-            flex-grow: 1;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            resize: none;
-        }
-        #send {
-            background-color: #d0d0d0;
-            border: none;
-            padding: 10px 20px;
-            margin-left: 10px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        #send:hover {
-            background-color: #c0c0c0;
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div id="main-container">
         <div id="header">
-            <button id="new-chat-btn">New Chat</button>
-            <button id="settings-btn">⚙️</button>
+          <button id="new-chat-btn">New Chat</button>
+          <button id="settings-btn">⚙️</button>
         </div>
         <div id="chat-container">
-            <div id="chatbox"></div>
-            <div id="input-container">
-                <textarea id="userinput" placeholder="Type your message..."></textarea>
-                <button id="send">Send</button>
-            </div>
+          <div id="chatbox">
+            <!-- Messages will be added here dynamically -->
+          </div>
         </div>
-    </div>
+        <div id="input-container">
+          <textarea id="userinput" placeholder="Type your message..."></textarea>
+          <button id="send">Send</button>
+        </div>
+      </div>
+    <script src="sidepanel.js" type="module"></script>
 </body>
 </html>

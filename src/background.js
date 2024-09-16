@@ -1,9 +1,13 @@
+// background.js
+
 let isDevMode = false;
 
-console.log('Background script loaded'); // This should always appear
+console.log('Background script loaded');
 
 function devLog(...args) {
-  console.log('[DEV]', ...args); // Always log, we'll check isDevMode inside
+  if (isDevMode) {
+    console.log('[DEV]', ...args);
+  }
 }
 
 chrome.runtime.onInstalled.addListener(() => {
@@ -49,13 +53,12 @@ async function handleLLMRequest(message, sendResponse) {
   try {
     const { apiKey } = await chrome.storage.sync.get(['apiKey']);
     if (!apiKey) {
-      devLog('API key not set');
-      sendResponse({reply: "API key not set. Please set your API key in the extension popup."});
-      return;
+      throw new Error('API key not set. Please set your API key in the extension settings.');
     }
 
     let chatHistory = await getChatHistory();
-    chatHistory.push({"role": "user", "content": message});
+    const userMessage = {"role": "user", "content": message};
+    chatHistory.push(userMessage);
     await saveChatHistory(chatHistory);
 
     devLog('Sending request to API');
@@ -84,15 +87,23 @@ async function handleLLMRequest(message, sendResponse) {
 
     if (data.choices && data.choices.length > 0 && data.choices[0].message) {
       const reply = data.choices[0].message.content;
-      chatHistory.push({"role": "assistant", "content": reply});
+      const assistantMessage = {"role": "assistant", "content": reply};
+      chatHistory.push(assistantMessage);
       await saveChatHistory(chatHistory);
-      sendResponse({reply: reply});
+      sendResponse({reply: reply, status: 'success'});
     } else {
       throw new Error('Unexpected API response structure');
     }
   } catch (error) {
     console.error('Error in handleLLMRequest:', error);
-    sendResponse({reply: `Error: ${error.message}`});
+    sendResponse({reply: error.message, status: 'error'});
+    
+    // Remove the last user message from chat history if there was an error
+    let chatHistory = await getChatHistory();
+    if (chatHistory.length > 0 && chatHistory[chatHistory.length - 1].role === 'user') {
+      chatHistory.pop();
+      await saveChatHistory(chatHistory);
+    }
   }
 }
 

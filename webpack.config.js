@@ -1,12 +1,14 @@
 const path = require('path');
 const CopyPlugin = require('copy-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
 module.exports = {
   entry: {
     background: './src/background.js',
     sidepanel: './src/sidepanel.js',
     'sidepanel-logic': './src/sidepanel-logic.js',
-    settings: './src/settings.js'  // Add entry point for settings.js
+    settings: './src/settings.js',
+    styles: './src/styles.css'
   },
   output: {
     filename: '[name].js',
@@ -23,6 +25,10 @@ module.exports = {
             presets: ['@babel/preset-env']
           }
         }
+      },
+      {
+        test: /\.css$/,
+        use: [MiniCssExtractPlugin.loader, 'css-loader']
       }
     ]
   },
@@ -31,8 +37,11 @@ module.exports = {
       patterns: [
         { from: "src/manifest.json", to: "manifest.json" },
         { from: "src/sidepanel.html", to: "sidepanel.html" },
-        { from: "src/settings.html", to: "settings.html" },  // Add this line to copy settings.html
+        { from: "src/settings.html", to: "settings.html" },
       ],
+    }),
+    new MiniCssExtractPlugin({
+      filename: '[name].css',
     }),
   ],
   resolve: {
@@ -40,5 +49,5 @@ module.exports = {
       "crypto": false
     }
   },
-  devtool: 'source-map'  // This will help with debugging
+  devtool: 'source-map'
 };
